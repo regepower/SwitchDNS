@@ -20,7 +20,6 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.Button
 import android.widget.EditText
-import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ListView
 import android.widget.RadioButton
@@ -55,24 +54,13 @@ class MainActivity : Activity() {
             fullWidth()
         )
 
-        // Status + on/off
-        val statusCard = card()
-        status = TextView(this).apply { textSize = 18f }
-        statusCard.addView(status)
-        toggle = Button(this).apply { setOnClickListener { onToggle() } }
-        statusCard.addView(toggle, fullWidth(8))
-        content.addView(statusCard, fullWidth(8))
-
-        // DNS server: only the active one; tap = list (own entries ★ on top, long-press deletes them)
-        content.addView(header(getString(R.string.header_server)))
-        val serverCard = card().apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(0, px(4), px(4), px(4))
-        }
+        // DNS server card: header shows the state, tap the server = list, button below it.
+        status = header(getString(R.string.header_server))
+        content.addView(status)
+        val serverCard = card()
         val info = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(px(12), px(6), px(8), px(6))
+            setPadding(px(4), px(4), px(4), px(4))
             setBackgroundResource(rowRipple())
             tooltipText = getString(R.string.hint_server)
             setOnClickListener { pickServer() }
@@ -87,9 +75,11 @@ class MainActivity : Activity() {
         }
         info.addView(serverName)
         info.addView(serverAddr)
-        serverCard.addView(info, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        serverCard.addView(info, fullWidth())
+        toggle = Button(this).apply { setOnClickListener { onToggle() } }
+        serverCard.addView(toggle, fullWidth(8))
         content.addView(serverCard, fullWidth())
-        content.addView(hint(getString(R.string.hint_server)))
+        content.addView(hint(getString(R.string.hint_tile)))
 
         // App filter
         content.addView(header(getString(R.string.header_apps)))
@@ -116,7 +106,6 @@ class MainActivity : Activity() {
             fullWidth(8)
         )
         content.addView(hint(getString(R.string.hint_always_on)))
-        content.addView(hint(getString(R.string.hint_tile)))
 
         setContentView(
             ScrollView(this).apply {
@@ -194,16 +183,16 @@ class MainActivity : Activity() {
     private fun renderState() {
         val active = DnsVpnService.active
         val paused = DnsVpnService.pausedReason
+        val state = when {
+            active != null -> getString(R.string.state_on)
+            paused != null -> getString(R.string.state_paused, getString(paused))
+            else -> getString(R.string.state_off)
+        }
+        status.text = getString(R.string.header_server_state, getString(R.string.header_server), state)
         if (active != null || paused != null) {
-            status.text = if (active != null) {
-                getString(R.string.state_on, active.name)
-            } else {
-                getString(R.string.state_paused, getString(paused!!))
-            }
             toggle.text = getString(R.string.btn_stop)
             styleButton(toggle, R.color.md_container, R.color.md_on_container)
         } else {
-            status.text = getString(R.string.state_off)
             toggle.text = getString(R.string.btn_start)
             styleButton(toggle, R.color.md_primary, R.color.md_on_primary)
         }
@@ -247,9 +236,13 @@ class MainActivity : Activity() {
         val row = serverRow(list[0], false).apply { measure(0, 0) }
         val maxHeight = (resources.displayMetrics.heightPixels * 0.55f).toInt()
         val height = minOf(row.measuredHeight * list.size, maxHeight)
-        val box = FrameLayout(this).apply {
-            setPadding(0, px(8), 0, 0)
-            addView(listView, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height))
+        val box = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(
+                hint(getString(R.string.hint_list)).apply { setPadding(px(24), 0, px(24), px(4)) },
+                fullWidth()
+            )
+            addView(listView, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height))
         }
         val dialog = AlertDialog.Builder(this)
             .setTitle(R.string.header_server)

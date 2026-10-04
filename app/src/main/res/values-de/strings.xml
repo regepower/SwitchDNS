@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="tile_label">DNS</string>
     <string name="state_off">Aus</string>
-    <string name="state_on">Aktiv: %1$s</string>
+    <string name="state_on">Aktiv</string>
     <string name="btn_start">VPN starten</string>
     <string name="btn_stop">VPN stoppen</string>
     <string name="header_server">DNS-Server</string>
@@ -25,7 +24,7 @@
     <string name="autostart">Beim Gerätestart aktivieren</string>
     <string name="btn_always_on">Durchgehend aktives VPN einrichten</string>
     <string name="hint_always_on">In den VPN-Einstellungen SwitchDNS öffnen und „Durchgehend aktives VPN“ einschalten. „Verbindungen ohne VPN blockieren“ ausgeschaltet lassen, sonst fällt das Internet aus.</string>
-    <string name="hint_tile">Kachel: Schnelleinstellungen bearbeiten und „DNS“ hinzufügen.</string>
+    <string name="hint_tile">Kachel: Schnelleinstellungen bearbeiten und „SwitchDNS“ hinzufügen.</string>
     <string name="search_hint">Apps suchen</string>
     <string name="header_selected">Ausgewählt (%1$d)</string>
     <string name="header_available">Verfügbar</string>
@@ -33,7 +32,7 @@
     <string name="notif_title">DNS aktiv: %1$s</string>
     <string name="action_stop">Stopp</string>
     <string name="err_vpn_denied">VPN-Berechtigung verweigert</string>
-    <string name="state_paused">Pausiert: %1$s</string>
+    <string name="state_paused">Pausiert (%1$s)</string>
     <string name="tile_paused">Pausiert</string>
     <string name="notif_paused">DNS pausiert: %1$s</string>
     <string name="pause_captive">WLAN-Anmeldeseite</string>
@@ -42,7 +41,7 @@
     <string name="opt_mobile">Bei mobilen Daten nutzen</string>
     <string name="opt_wifi">Bei WLAN nutzen</string>
     <string name="opt_captive">Bei WLAN-Anmeldeseiten pausieren (z. B. Bahn- oder Hotel-Hotspots)</string>
-    <string name="hint_server">Tippen zum Wechseln. Eigene Server (★) stehen oben in der Liste, lange drücken löscht sie.</string>
+    <string name="hint_server">Tippen zum Wechseln des Servers</string>
     <string name="help">Hilfe</string>
     <string name="help_ok">Verstanden</string>
     <string name="cfg_save">Konfiguration speichern</string>
@@ -51,11 +50,13 @@
     <string name="cfg_loaded">Konfiguration geladen</string>
     <string name="cfg_invalid">Keine gültige SwitchDNS-Konfiguration</string>
     <string name="cfg_error">Datei konnte nicht geschrieben werden</string>
-    <string name="help_text"><b>Was macht die App?</b>\nSie setzt für deine Apps einen anderen DNS-Server. Dazu startet sie ein lokales VPN, das nur die DNS-Einstellung trägt. Dein Datenverkehr läuft nicht hindurch, es wird nichts protokolliert.\n\n<b>Einrichtung</b>\n1. DNS-Server wählen (Karte antippen). Eigene Server sind mit ★ markiert und stehen oben; in der Liste lange drücken löscht sie.\n2. „VPN starten“ tippen und die VPN-Anfrage einmal erlauben.\n3. Optional: Kachel „DNS“ zu den Schnelleinstellungen hinzufügen.\n\n<b>Apps</b>\nEntweder alle Apps außer den ausgewählten oder nur die ausgewählten nutzen den DNS-Server.\n\n<b>Netzregeln</b>\nBei mobilen Daten und/oder WLAN nutzen. Auf WLAN-Anmeldeseiten (Bahn, Hotel) pausiert die App, bis du angemeldet bist.\n\n<b>Dauerhaft aktiv</b>\n„Beim Gerätestart aktivieren“ oder System-VPN-Einstellungen → SwitchDNS → „Durchgehend aktives VPN“. „Verbindungen ohne VPN blockieren“ ausgeschaltet lassen.\n\n<b>Speichern / Laden</b>\nDie Symbole oben sichern alle Einstellungen (inkl. eigener Server und App-Liste) in eine Datei und stellen sie wieder her, z. B. auf einem neuen Handy.</string>
+    <string name="help_text"><b>Was macht die App?</b>\nSie setzt für deine Apps einen anderen DNS-Server. Dazu startet sie ein lokales VPN, das nur die DNS-Einstellung trägt. Dein Datenverkehr läuft nicht hindurch, es wird nichts protokolliert.\n\n<b>Einrichtung</b>\n1. DNS-Server wählen (Karte antippen). Eigene Server sind mit ★ markiert und stehen oben; in der Liste lange drücken löscht sie.\n2. „VPN starten“ tippen und die VPN-Anfrage einmal erlauben.\n3. Optional: Kachel „SwitchDNS“ zu den Schnelleinstellungen hinzufügen.\n\n<b>Apps</b>\nEntweder alle Apps außer den ausgewählten oder nur die ausgewählten nutzen den DNS-Server.\n\n<b>Netzregeln</b>\nBei mobilen Daten und/oder WLAN nutzen. Auf WLAN-Anmeldeseiten (Bahn, Hotel) pausiert die App, bis du angemeldet bist.\n\n<b>Dauerhaft aktiv</b>\n„Beim Gerätestart aktivieren“ oder System-VPN-Einstellungen → SwitchDNS → „Durchgehend aktives VPN“. „Verbindungen ohne VPN blockieren“ ausgeschaltet lassen.\n\n<b>Speichern / Laden</b>\nDie Symbole oben sichern alle Einstellungen (inkl. eigener Server und App-Liste) in eine Datei und stellen sie wieder her, z. B. auf einem neuen Handy.</string>
     <string name="show_system">Systemapps anzeigen</string>
     <string name="help_show_system">Zeigt auch Apps und Dienste ohne Startsymbol, z. B. Google-Play-Dienste.</string>
     <string name="cfg_overwrite">%1$s überschreiben?</string>
     <string name="cfg_overwrite_ok">Überschreiben</string>
     <string name="cfg_other_place">Anderer Ort</string>
     <string name="err_preset_delete">Vorgaben können nicht gelöscht werden</string>
+    <string name="header_server_state">%1$s · %2$s</string>
+    <string name="hint_list">Eigene Server (★) stehen oben; lange drücken löscht sie.</string>
 </resources>

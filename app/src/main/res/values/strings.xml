@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">SwitchDNS</string>
-    <string name="tile_label">DNS</string>
     <string name="state_off">Off</string>
-    <string name="state_on">Active: %1$s</string>
+    <string name="state_on">Active</string>
     <string name="btn_start">Start VPN</string>
     <string name="btn_stop">Stop VPN</string>
     <string name="header_server">DNS server</string>
@@ -26,7 +25,7 @@
     <string name="autostart">Start on device boot</string>
     <string name="btn_always_on">Set up always-on VPN</string>
     <string name="hint_always_on">In the VPN settings, open SwitchDNS and enable \"Always-on VPN\". Leave \"Block connections without VPN\" off, otherwise the internet stops working.</string>
-    <string name="hint_tile">Quick settings tile: edit the quick settings and add \"DNS\".</string>
+    <string name="hint_tile">Quick settings tile: edit the quick settings and add \"SwitchDNS\".</string>
     <string name="search_hint">Search apps</string>
     <string name="header_selected">Selected (%1$d)</string>
     <string name="header_available">Available</string>
@@ -34,7 +33,7 @@
     <string name="notif_title">DNS active: %1$s</string>
     <string name="action_stop">Stop</string>
     <string name="err_vpn_denied">VPN permission denied</string>
-    <string name="state_paused">Paused: %1$s</string>
+    <string name="state_paused">Paused (%1$s)</string>
     <string name="tile_paused">Paused</string>
     <string name="notif_paused">DNS paused: %1$s</string>
     <string name="pause_captive">Wi-Fi login page</string>
@@ -43,7 +42,7 @@
     <string name="opt_mobile">Use on mobile data</string>
     <string name="opt_wifi">Use on Wi-Fi</string>
     <string name="opt_captive">Pause on Wi-Fi login pages (e.g. train or hotel hotspots)</string>
-    <string name="hint_server">Tap to switch. Own servers (★) are at the top of the list; long-press one to delete it.</string>
+    <string name="hint_server">Tap to switch the server</string>
     <string name="help">Help</string>
     <string name="help_ok">Got it</string>
     <string name="cfg_save">Save configuration</string>
@@ -52,11 +51,13 @@
     <string name="cfg_loaded">Configuration loaded</string>
     <string name="cfg_invalid">Not a valid SwitchDNS configuration</string>
     <string name="cfg_error">File could not be written</string>
-    <string name="help_text"><b>What does the app do?</b>\nIt sets a different DNS server for your apps by starting a local VPN that only carries the DNS setting. Your traffic is not routed through it and nothing is logged.\n\n<b>Setup</b>\n1. Pick a DNS server (tap the card). Own servers are marked ★ and listed first; long-press one in the list to delete it.\n2. Tap \"Start VPN\" and allow the VPN request once.\n3. Optional: add the \"DNS\" tile to the quick settings.\n\n<b>Apps</b>\nEither all apps except the selected ones, or only the selected ones use the DNS server.\n\n<b>Network rules</b>\nUse on mobile data and/or Wi-Fi. On Wi-Fi login pages (train, hotel) the app pauses until you are logged in.\n\n<b>Always on</b>\n\"Start on device boot\" or system VPN settings → SwitchDNS → \"Always-on VPN\". Leave \"Block connections without VPN\" off.\n\n<b>Save / load</b>\nThe icons at the top store all settings (incl. own servers and app list) in a file and restore them, e.g. on a new phone.</string>
+    <string name="help_text"><b>What does the app do?</b>\nIt sets a different DNS server for your apps by starting a local VPN that only carries the DNS setting. Your traffic is not routed through it and nothing is logged.\n\n<b>Setup</b>\n1. Pick a DNS server (tap the card). Own servers are marked ★ and listed first; long-press one in the list to delete it.\n2. Tap \"Start VPN\" and allow the VPN request once.\n3. Optional: add the \"SwitchDNS\" tile to the quick settings.\n\n<b>Apps</b>\nEither all apps except the selected ones, or only the selected ones use the DNS server.\n\n<b>Network rules</b>\nUse on mobile data and/or Wi-Fi. On Wi-Fi login pages (train, hotel) the app pauses until you are logged in.\n\n<b>Always on</b>\n\"Start on device boot\" or system VPN settings → SwitchDNS → \"Always-on VPN\". Leave \"Block connections without VPN\" off.\n\n<b>Save / load</b>\nThe icons at the top store all settings (incl. own servers and app list) in a file and restore them, e.g. on a new phone.</string>
     <string name="show_system">Show system apps</string>
     <string name="help_show_system">Also lists apps and services without a launcher icon, e.g. Google Play services.</string>
     <string name="cfg_overwrite">Overwrite %1$s?</string>
     <string name="cfg_overwrite_ok">Overwrite</string>
     <string name="cfg_other_place">Other location</string>
     <string name="err_preset_delete">Presets cannot be deleted</string>
+    <string name="header_server_state">%1$s · %2$s</string>
+    <string name="hint_list">Own servers (★) are listed first; long-press one to delete it.</string>
 </resources>
