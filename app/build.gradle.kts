@@ -15,14 +15,23 @@ android {
         versionName = "1.0"
     }
 
+    // Release key from CI secrets. Only KEYSTORE_BASE64 + KEYSTORE_PASSWORD are required: without
+    // KEY_ALIAS the first alias in the keystore is used, without KEY_PASSWORD the store password.
     val keystorePath: String? = System.getenv("KEYSTORE_FILE")
     if (keystorePath != null) {
+        val storePw = System.getenv("KEYSTORE_PASSWORD").orEmpty()
+        val alias =
+            System.getenv("KEY_ALIAS")?.takeIf { it.isNotBlank() }
+                ?: java.security.KeyStore.getInstance(java.security.KeyStore.getDefaultType()).run {
+                    file(keystorePath).inputStream().use { load(it, storePw.toCharArray()) }
+                    aliases().nextElement()
+                }
         signingConfigs {
             create("release") {
                 storeFile = file(keystorePath)
-                storePassword = System.getenv("KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("KEY_ALIAS")
-                keyPassword = System.getenv("KEY_PASSWORD")
+                storePassword = storePw
+                keyAlias = alias
+                keyPassword = System.getenv("KEY_PASSWORD")?.takeIf { it.isNotBlank() } ?: storePw
             }
         }
     }
