@@ -1,4 +1,4 @@
-# SwitchDNS (repo: MinDNSChanger)
+# SwitchDNS
 
 Schlanker DNS-Changer für Android 12–16 (minSdk 31, targetSdk 36).
 
@@ -10,3 +10,7 @@ Schlanker DNS-Changer für Android 12–16 (minSdk 31, targetSdk 36).
 - Schnelleinstellungs-Kachel „DNS“, Start beim Booten, durchgehend aktives VPN (Always-on). „Verbindungen ohne VPN blockieren“ nicht aktivieren.
 - Build: GitHub Actions (ktlint, Android-Lint, Debug + Release), APK als Artifact; Tag `v*` → Release.
 - Signierung (optional): Secrets `KEYSTORE_B64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.
+
+## Unterstützen
+
+Diese App wiegt weniger als ein Foto. Unterstütze die Entwicklung auf [Liberapay](https://liberapay.com/regepower/donate).
