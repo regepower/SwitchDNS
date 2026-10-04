@@ -50,6 +50,8 @@
     <string name="cfg_loaded">Konfiguration geladen</string>
     <string name="cfg_invalid">Keine gültige SwitchDNS-Konfiguration</string>
     <string name="cfg_error">Datei konnte nicht geschrieben werden</string>
+    <string name="donate">Spenden</string>
+    <string name="donate_text">Diese App wiegt weniger als ein Foto. Unterstütze die Entwicklung auf Liberapay.</string>
     <string name="help_text"><b>Was macht die App?</b>\nSie setzt für deine Apps einen anderen DNS-Server. Dazu startet sie ein lokales VPN, das nur die DNS-Einstellung trägt. Dein Datenverkehr läuft nicht hindurch, es wird nichts protokolliert.\n\n<b>Einrichtung</b>\n1. DNS-Server wählen (Karte antippen). Eigene Server sind mit ★ markiert und stehen oben; in der Liste lange drücken löscht sie.\n2. „VPN starten“ tippen und die VPN-Anfrage einmal erlauben.\n3. Optional: Kachel „SwitchDNS“ zu den Schnelleinstellungen hinzufügen.\n\n<b>Apps</b>\nEntweder alle Apps außer den ausgewählten oder nur die ausgewählten nutzen den DNS-Server.\n\n<b>Netzregeln</b>\nBei mobilen Daten und/oder WLAN nutzen. Auf WLAN-Anmeldeseiten (Bahn, Hotel) pausiert die App, bis du angemeldet bist.\n\n<b>Dauerhaft aktiv</b>\n„Beim Gerätestart aktivieren“ oder System-VPN-Einstellungen → SwitchDNS → „Durchgehend aktives VPN“. „Verbindungen ohne VPN blockieren“ ausgeschaltet lassen.\n\n<b>Speichern / Laden</b>\nDie Symbole oben sichern alle Einstellungen (inkl. eigener Server und App-Liste) in eine Datei und stellen sie wieder her, z. B. auf einem neuen Handy.</string>
     <string name="show_system">Systemapps anzeigen</string>
     <string name="help_show_system">Zeigt auch Apps und Dienste ohne Startsymbol, z. B. Google-Play-Dienste.</string>

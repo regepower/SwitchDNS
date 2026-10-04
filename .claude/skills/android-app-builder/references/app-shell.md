@@ -27,7 +27,7 @@ Keep predicates in use: BootDelay boot counter keys, MinCalSync source/target ca
 - Picker dialogs: two-line items — name on line 1, details on line 2 via `SpannableString` with `RelativeSizeSpan(0.75f)` + `ForegroundColorSpan(md_outline)` passed to `setSingleChoiceItems`.
 
 ## Help
-`AlertDialog` with `setMessage(getText(R.string.help_text))`; `help_text` uses `<b>` section titles and `\n` line breaks, EN + DE. Sections: what the app does, setup steps, each feature in 1–2 sentences, OEM caveats, save/load. Button `help_ok` ("Verstanden"). MinCalSync also opens help automatically on first start (nothing configured yet).
+`AlertDialog` with `setMessage(getText(R.string.help_text))`; `help_text` uses `<b>` section titles and `\n` line breaks, EN + DE. Sections: what the app does, setup steps, each feature in 1–2 sentences, OEM caveats, save/load. Button `help_ok` ("Verstanden"). Below the help text (user decision, Oct 2026, all apps): blank line, "<AppName> <versionName>" (from `packageManager.getPackageInfo`, no BuildConfig), then `donate_text` ("Diese App wiegt weniger als ein Foto. Unterstütze die Entwicklung auf Liberapay." / EN "This app weighs less than a photo. Support its development on Liberapay."); neutral button `donate` ("Spenden"/"Donate") opens `donate_url` = `https://liberapay.com/regepower/donate` (translatable="false") via `ACTION_VIEW`, `ActivityNotFoundException` → toast with the URL. Reference: SwitchDNS `AppShell.showHelp`. MinCalSync also opens help automatically on first start (nothing configured yet).
 
 ## Config save/load (no permission)
 - User decision (ZenDay, Oct 2026), file dialog + remembered file:
