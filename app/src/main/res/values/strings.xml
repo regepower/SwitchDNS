@@ -52,7 +52,7 @@
     <string name="cfg_invalid">Not a valid SwitchDNS configuration</string>
     <string name="cfg_error">File could not be written</string>
     <string name="donate">Donate</string>
-    <string name="donate_text">This app weighs less than a photo. Support its development on Liberapay.</string>
+    <string name="donate_text">This app is smaller than a photo. Support its development on Liberapay.</string>
     <string name="donate_url" translatable="false">https://liberapay.com/regepower/donate</string>
     <string name="help_text"><b>What does the app do?</b>\nIt sets a different DNS server for your apps by starting a local VPN that only carries the DNS setting. Your traffic is not routed through it and nothing is logged.\n\n<b>Setup</b>\n1. Pick a DNS server (tap the card). Own servers are marked ★ and listed first; long-press one in the list to delete it.\n2. Tap \"Start VPN\" and allow the VPN request once.\n3. Optional: add the \"SwitchDNS\" tile to the quick settings.\n\n<b>Apps</b>\nEither all apps except the selected ones, or only the selected ones use the DNS server.\n\n<b>Network rules</b>\nUse on mobile data and/or Wi-Fi. On Wi-Fi login pages (train, hotel) the app pauses until you are logged in.\n\n<b>Always on</b>\n\"Start on device boot\" or system VPN settings → SwitchDNS → \"Always-on VPN\". Leave \"Block connections without VPN\" off.\n\n<b>Save / load</b>\nThe icons at the top store all settings (incl. own servers and app list) in a file and restore them, e.g. on a new phone.</string>
     <string name="show_system">Show system apps</string>
