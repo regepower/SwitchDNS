@@ -13,7 +13,7 @@ Schlanker DNS-Changer für Android 12–16 (minSdk 31, targetSdk 36).
 
 ## Unterstützen
 
-Diese App wiegt weniger als ein Foto. Unterstütze die Entwicklung auf [Liberapay](https://liberapay.com/regepower/donate).
+Diese App wiegt weniger als ein Foto. Unterstütze die Entwicklung auf [Liberapay](https://liberapay.com/regepower/donate) oder [GitHub Sponsors](https://github.com/sponsors/regepower).
 
 ## Lizenz
 
