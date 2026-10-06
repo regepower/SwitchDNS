@@ -21,6 +21,9 @@ The sandbox has no Android SDK, so you cannot compile locally. Write code → pu
 6. **Measure size** whenever you add a dependency or restyle; the CI shows the release APK size in a step name.
 7. **Deliver** the `BootDelay-release`-style artifact (Actions run → Artifacts). Tell the user to install the *release* APK: the debug APK is ~30x bigger and users mistake it for the app size.
 
+## Versioning
+User decision (AgendaGo, Oct 2026, all apps): `versionName = "1.0.$build"`, `versionCode = maxOf(build, 1)` with `val build = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 0` in `defaultConfig`. Every CI build is visibly numbered (#57 → 1.0.57) and installs as an update; major/minor are bumped by hand only for bigger changes. Build day: `manifestPlaceholders["buildDate"] = LocalDate.now(ZoneId.of("Europe/Berlin")).toString()` → `<meta-data android:name="build_date" android:value="${buildDate}"/>` in `<application>`, read with `getApplicationInfo(…, GET_META_DATA)` (no BuildConfig, no generated string that would trip `MissingTranslation`). The CI step name shows "Release APK 1.0.<run>: <bytes>". Help shows "<App> 1.0.57 · 06.10.2026" (see `references/app-shell.md` → Help).
+
 ## Compiler / build options that matter
 
 `app/build.gradle.kts` essentials (all in the reference app):
@@ -42,7 +45,7 @@ Short version: a boot receiver may start a foreground service of type `specialUs
 `VpnService.Builder` with `addAddress` + `addDnsServer`, **no routes**, `allowFamily(AF_INET/AF_INET6)`, no packet loop: Android resolves names for the covered apps via those servers while traffic uses the normal network. FGS type `systemExempted` needs `FOREGROUND_SERVICE_SYSTEM_EXEMPTED` **and** `USE_EXACT_ALARM` (lint `ForegroundServicePermission`). Always-on via `<intent-filter android.net.VpnService>` + `SUPPORTS_ALWAYS_ON`; "Block connections without VPN" must stay off. **Always `setMetered(false)`**: for targetSdk 29+ a VPN is metered by default, so Play Store stops auto-updates on Wi-Fi; false = inherit the underlying network's metered state. Network rules through `registerDefaultNetworkCallback` (the app excludes itself from its VPN, so it sees the underlying network) and `NET_CAPABILITY_CAPTIVE_PORTAL` for login hotspots.
 
 ## Renaming an app
-Display name only (`app_name`): installs over the old version, settings kept. New package ID (`namespace` + `applicationId` + source dir + `package` lines + intent action strings): Android treats it as a new app — tell the user to save the config in the old app first, then load it in the new one (`AppShell.legacyNames` accepts the old name). The GitHub repo is renamed by the user (Settings → Repository name); the proxy blocks settings writes. Done: MinCalWidget → ZenDay, MinDNSChanger → SwitchDNS (`de.regepower.switchdns`).
+Display name only (`app_name`): installs over the old version, settings kept. New package ID (`namespace` + `applicationId` + source dir + `package` lines + intent action strings): Android treats it as a new app — tell the user to save the config in the old app first, then load it in the new one (`AppShell.legacyNames` accepts the old name). The GitHub repo is renamed by the user (Settings → Repository name); the proxy blocks settings writes. Done: MinCalWidget → ZenDay → AgendaGo (`de.regepower.agendago`, name clash with zen-day.de), MinDNSChanger → SwitchDNS (`de.regepower.switchdns`).
 
 ## UI / design (Material You without libraries)
 
@@ -50,7 +53,7 @@ Use `Theme.DeviceDefault.DayNight` as parent and map your own `md_*` colors to `
 
 ## App shell (all our apps)
 
-Same top row everywhere: app name large + bold, then icons **save config**, **load config**, **help (?)**. Help is a dialog with a short guide; config is one JSON file via the system file dialog (JSON filter, no permission, cloud OK); the last file is remembered and overwritten after asking (Überschreiben / Anderer Ort / Abbrechen), generic `ConfigIO.kt`. Long lists show only the active entry in a card (tap = picker dialog, + / − icons). Details, icon paths and the tested ConfigIO: `references/app-shell.md`.
+Same top row everywhere: app name large + bold, then icons **save config**, **load config**, **help (?)**. Help is a dialog with foldable chapters plus version, build day, donation line and GPL-3.0/FOSS note with the GitHub link; config is one JSON file via the system file dialog (JSON filter, no permission, cloud OK); the last file is remembered and overwritten after asking (Überschreiben / Anderer Ort / Abbrechen), generic `ConfigIO.kt`. Long lists show only the active entry in a card (tap = picker dialog, + / − icons). Details, icon paths and the tested ConfigIO: `references/app-shell.md`.
 
 ## App icon
 

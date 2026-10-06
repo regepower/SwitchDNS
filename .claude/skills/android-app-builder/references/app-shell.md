@@ -1,8 +1,8 @@
 # App shell shared by all our apps (header, help, config save/load)
 
-User decision (MinDNSChanger, Oct 2026): every app gets the same top row; rolled out to BootDelay, MinCalSync, ZenDay (formerly MinCalWidget), SwitchDNS (formerly MinDNSChanger).
+User decision (MinDNSChanger, Oct 2026): every app gets the same top row; rolled out to BootDelay, MinCalSync, AgendaGo (formerly ZenDay/MinCalWidget), SwitchDNS (formerly MinDNSChanger).
 
-**Drop-in:** copy `AppShell.kt` + `ConfigIO.kt` from `regepower/ZenDay` (reference version; change only the package line), the vectors `ic_save/ic_load/ic_help`, the strings `help, help_ok, help_text, cfg_save, cfg_load, cfg_saved, cfg_loaded, cfg_invalid, cfg_error, cfg_overwrite ("%1$s überschreiben?"), cfg_overwrite_ok ("Überschreiben"), cfg_other_place ("Anderer Ort")` (EN + DE), then:
+**Drop-in:** copy `AppShell.kt` + `ConfigIO.kt` from `regepower/AgendaGo` (reference version; change only the package line), the vectors `ic_save/ic_load/ic_help`, the strings `help, help_ok, help_text, help_open, help_closed, help_expanded, help_collapsed, foss_text, source_url, help_footer, donate, donate_text, donate_url, cfg_save, cfg_load, cfg_saved, cfg_loaded, cfg_invalid, cfg_error, cfg_overwrite ("%1$s überschreiben?"), cfg_overwrite_ok ("Überschreiben"), cfg_other_place ("Anderer Ort")` (EN + DE), then:
 ```kotlin
 root.addView(AppShell.header(this, prefs.sp, Prefs.DEVICE_KEYS::contains))   // first row; sp/keep needed for overwrite-without-picker
 override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -11,9 +11,9 @@ override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) 
     AppShell.onResult(this, requestCode, resultCode, data, prefs.sp, Prefs.DEVICE_KEYS::contains) { /* re-apply */ recreate() }
 }
 ```
-Renamed apps: `AppShell.legacyNames = listOf("OldName")` (SwitchDNS has it; add the 3-line `legacyNames` extension when copying from ZenDay) so config files saved under the old app name still load.
+Renamed apps: `AppShell.legacyNames = listOf("OldName")` (SwitchDNS and AgendaGo have it) so config files saved under the old app name still load.
 
-Keep predicates in use: BootDelay boot counter keys, MinCalSync source/target calendar IDs + last result, ZenDay `*.cals` / `*.tasklists`. Existing app code stays untouched apart from the header row.
+Keep predicates in use: BootDelay boot counter keys, MinCalSync source/target calendar IDs + last result, AgendaGo `*.cals` / `*.tasklists`. Existing app code stays untouched apart from the header row.
 
 ## Header row
 - Left: app name, 24sp, bold, `md_on_container`, weight 1.
@@ -27,7 +27,12 @@ Keep predicates in use: BootDelay boot counter keys, MinCalSync source/target ca
 - Picker dialogs: two-line items — name on line 1, details on line 2 via `SpannableString` with `RelativeSizeSpan(0.75f)` + `ForegroundColorSpan(md_outline)` passed to `setSingleChoiceItems`.
 
 ## Help
-`AlertDialog` with `setMessage(getText(R.string.help_text))`; `help_text` uses `<b>` section titles and `\n` line breaks, EN + DE. Sections: what the app does, setup steps, each feature in 1–2 sentences, OEM caveats, save/load. Button `help_ok` ("Verstanden"). Below the help text (user decision, Oct 2026, all apps): blank line, "<AppName> <versionName>" (from `packageManager.getPackageInfo`, no BuildConfig), then `donate_text` ("Diese App wiegt weniger als ein Foto. Unterstütze die Entwicklung auf Liberapay." / EN "This app weighs less than a photo. Support its development on Liberapay."); neutral button `donate` ("Spenden"/"Donate") opens `donate_url` = `https://liberapay.com/regepower/donate` (translatable="false") via `ACTION_VIEW`, `ActivityNotFoundException` → toast with the URL. Reference: SwitchDNS `AppShell.showHelp`. MinCalSync also opens help automatically on first start (nothing configured yet).
+Reference: AgendaGo `AppShell.showHelp` (user decisions, Oct 2026, all apps).
+- `help_text` (EN + DE) uses `<b>Title</b>\n` chapter titles and `\n` line breaks; chapters are separated by a blank line. Sections: what the app does, setup steps, each feature in 1–2 sentences, OEM caveats, save/load, privacy notes (e.g. how a stored password is kept).
+- **Foldable chapters:** `showHelp` splits `help_text` at blank lines; a block whose first line is bold becomes a tappable title (`help_open` "▾  %1$s" / `help_closed` "▸  %1$s", translatable="false", plus `stateDescription` `help_expanded`/`help_collapsed` for TalkBack). Only the first chapter starts open. Custom view in a `ScrollView`, not `setMessage`.
+- **Footer** via `help_footer` ("%1$s %2$s · %3$s\n%4$s\n\n%5$s", translatable="false"; a resource string because lint `SetTextI18n` flags concatenation): app name, versionName (`packageManager.getPackageInfo`, no BuildConfig), build day (manifest meta-data `build_date`, see SKILL.md → Versioning; `DateTimeFormatter.ofLocalizedDate(MEDIUM)`), `donate_text` ("Diese App wiegt weniger als ein Foto. Unterstütze die Entwicklung auf Liberapay." / EN "This app weighs less than a photo. Support its development on Liberapay."), then `foss_text` ("Diese App ist freie Open-Source-Software (FOSS) unter der Lizenz GPL-3.0.\nQuellcode: %1$s") with `source_url` = the app's GitHub repo (translatable="false"); `autoLinkMask = Linkify.WEB_URLS` set **before** the text so the URL is tappable. All our app repos are public with a GPL-3.0 `LICENSE`.
+- Buttons: `help_ok` ("Verstanden"), neutral `donate` ("Spenden"/"Donate") opens `donate_url` = `https://liberapay.com/regepower/donate` (translatable="false") via `ACTION_VIEW`, `ActivityNotFoundException` → toast with the URL. `.github/FUNDING.yml` lists `github: regepower` and `liberapay: regepower`.
+- MinCalSync also opens help automatically on first start (nothing configured yet).
 
 ## Config save/load (no permission)
 - User decision (ZenDay, Oct 2026), file dialog + remembered file:
@@ -41,6 +46,7 @@ Keep predicates in use: BootDelay boot counter keys, MinCalSync source/target ca
 - `ConfigIO.kt` is generic — copy unchanged: exports all entries of one SharedPreferences file with type tags (`b/i/l/f/s/ss`) plus `"app"` name and `"format": 1`; import validates the whole file first (wrong app, broken JSON or unknown type → false, nothing changed), then removes all non-kept keys + typed puts + `commit()`. `keep: (String) -> Boolean` marks device-specific keys (neither exported nor overwritten).
 - Expose the app's store (`Prefs.sp`). Do not export device-specific state (boot counters, calendar IDs that differ per phone) — keep those in a second prefs file or skip their keys.
 - After import: re-apply running services (e.g. restart the VPN), then `recreate()`.
+- **Pitfall (BootDelay, Oct 2026):** if the activity saves its UI in `onPause()`, an import gets overwritten: `recreate()` runs after `onResume`, so the old (after a fresh install: empty) UI is saved back. Set a flag in `onLoaded` (`configLoaded = true; recreate()`) and return early from `save()`.
 - Tested on the JVM with a fake `SharedPreferences` and org.json built from GitHub source (Maven Central and Google Maven are blocked in the sandbox): round trip, wrong app, broken JSON, unknown type.
 
 ## "Show the active item, pick from a dialog"
