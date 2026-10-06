@@ -72,5 +72,8 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+        <meta-data
+            android:name="build_date"
+            android:value="${buildDate}" />
     </application>
 </manifest>

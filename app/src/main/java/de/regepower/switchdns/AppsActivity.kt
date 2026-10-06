@@ -8,20 +8,24 @@ import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
+import android.widget.BaseAdapter
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ListView
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.Switch
 import android.widget.TextView
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import java.util.Locale
 
-/** App selector from BootDelay (search, selected/available lists), without drag sorting, plus filter mode. */
+/**
+ * App selector from BootDelay (search, selected/available lists), without drag sorting, plus filter mode.
+ * Framework ListView instead of RecyclerView: no AndroidX dependency (RecyclerView cost ~105 KB APK).
+ */
 class AppsActivity : Activity() {
     private class AppItem(
         val label: String,
@@ -131,14 +135,15 @@ class AppsActivity : Activity() {
         super.onPause()
     }
 
-    private fun appList(a: AppAdapter) = RecyclerView(this).apply {
-        layoutManager = LinearLayoutManager(context)
+    private fun appList(a: AppAdapter) = ListView(this).apply {
         adapter = a
+        divider = null
         setBackgroundResource(R.drawable.bg_card)
         clipToOutline = true
         val p = dp.toInt()
         setPadding(p, p, p, p)
         clipToPadding = true
+        setOnItemClickListener { _, _, position, _ -> toggle(a.getItem(position)) }
     }
 
     private fun toggle(item: AppItem) {
@@ -152,7 +157,7 @@ class AppsActivity : Activity() {
     private fun refreshLists() {
         val byLabel = compareBy<AppItem> { it.label.lowercase(Locale.getDefault()) }
         selectedAdapter.set(all.filter { it.selected }.sortedWith(byLabel))
-        selectedHeader.text = getString(R.string.header_selected, selectedAdapter.itemCount)
+        selectedHeader.text = getString(R.string.header_selected, selectedAdapter.count)
         availableAdapter.set(
             all.filter { !it.selected && (it.launcher || prefs.showSystem) }
                 .filter {
@@ -195,69 +200,60 @@ class AppsActivity : Activity() {
         }.start()
     }
 
-    private inner class AppAdapter : RecyclerView.Adapter<AppAdapter.Holder>() {
+    private class Holder(val icon: ImageView, val name: TextView, val pkg: TextView, val check: CheckBox)
+
+    private inner class AppAdapter : BaseAdapter() {
         private val items = mutableListOf<AppItem>()
 
-        inner class Holder(
-            row: LinearLayout,
-            val icon: ImageView,
-            val name: TextView,
-            val pkg: TextView,
-            val check: CheckBox
-        ) : RecyclerView.ViewHolder(row)
-
-        @Suppress("NotifyDataSetChanged")
         fun set(newItems: List<AppItem>) {
             items.clear()
             items.addAll(newItems)
             notifyDataSetChanged()
         }
 
-        override fun getItemCount() = items.size
+        override fun getCount() = items.size
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
-            val ctx = parent.context
+        override fun getItem(position: Int) = items[position]
+
+        override fun getItemId(position: Int) = position.toLong()
+
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            val row = convertView ?: newRow()
+            val holder = row.tag as Holder
+            val item = items[position]
+            holder.icon.setImageDrawable(item.icon)
+            holder.name.text = item.label
+            holder.pkg.text = item.pkg
+            holder.check.isChecked = item.selected
+            return row
+        }
+
+        private fun newRow(): View {
             val p = px(6)
-            val row = LinearLayout(ctx).apply {
+            val row = LinearLayout(this@AppsActivity).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
                 setPadding(p, p, p, p)
-                layoutParams = RecyclerView.LayoutParams(-1, -2)
-                isClickable = true
-                isFocusable = true
-                setBackgroundResource(rowRipple())
             }
             val size = px(36)
-            val icon = ImageView(ctx)
+            val icon = ImageView(this@AppsActivity)
             row.addView(icon, LinearLayout.LayoutParams(size, size))
-            val texts = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
-            val name = TextView(ctx).apply { textSize = 15f }
-            val pkg = TextView(ctx).apply {
+            val texts = LinearLayout(this@AppsActivity).apply { orientation = LinearLayout.VERTICAL }
+            val name = TextView(this@AppsActivity).apply { textSize = 15f }
+            val pkg = TextView(this@AppsActivity).apply {
                 textSize = 10f
                 setTextColor(getColor(R.color.md_on_surface_variant))
             }
             texts.addView(name)
             texts.addView(pkg)
             row.addView(texts, LinearLayout.LayoutParams(0, -2, 1f).apply { marginStart = px(10) })
-            val check = CheckBox(ctx).apply {
+            val check = CheckBox(this@AppsActivity).apply {
                 isClickable = false
                 isFocusable = false
             }
             row.addView(check)
-            val holder = Holder(row, icon, name, pkg, check)
-            row.setOnClickListener {
-                val pos = holder.bindingAdapterPosition
-                if (pos >= 0) toggle(items[pos])
-            }
-            return holder
-        }
-
-        override fun onBindViewHolder(holder: Holder, position: Int) {
-            val item = items[position]
-            holder.icon.setImageDrawable(item.icon)
-            holder.name.text = item.label
-            holder.pkg.text = item.pkg
-            holder.check.isChecked = item.selected
+            row.tag = Holder(icon, name, pkg, check)
+            return row
         }
     }
 

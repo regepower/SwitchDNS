@@ -54,7 +54,7 @@
     <string name="donate">Donate</string>
     <string name="donate_text">This app is smaller than a photo. Support its development on Liberapay.</string>
     <string name="donate_url" translatable="false">https://liberapay.com/regepower/donate</string>
-    <string name="help_text"><b>What does the app do?</b>\nIt sets a different DNS server for your apps by starting a local VPN that only carries the DNS setting. Your traffic is not routed through it and nothing is logged.\n\n<b>Setup</b>\n1. Pick a DNS server (tap the card). Own servers are marked ★ and listed first; long-press one in the list to delete it.\n2. Tap \"Start VPN\" and allow the VPN request once.\n3. Optional: add the \"SwitchDNS\" tile to the quick settings.\n\n<b>Apps</b>\nEither all apps except the selected ones, or only the selected ones use the DNS server.\n\n<b>Network rules</b>\nUse on mobile data and/or Wi-Fi. On Wi-Fi login pages (train, hotel) the app pauses until you are logged in.\n\n<b>Always on</b>\n\"Start on device boot\" or system VPN settings → SwitchDNS → \"Always-on VPN\". Leave \"Block connections without VPN\" off.\n\n<b>Save / load</b>\nThe icons at the top store all settings (incl. own servers and app list) in a file and restore them, e.g. on a new phone.</string>
+    <string name="help_text"><b>What does the app do?</b>\nIt sets a different DNS server for your apps by starting a local VPN that only carries the DNS setting. Your traffic is not routed through it and nothing is logged.\n\n<b>Setup</b>\n1. Pick a DNS server (tap the card). Own servers are marked ★ and listed first; long-press one in the list to delete it.\n2. Tap \"Start VPN\" and allow the VPN request once.\n3. Optional: add the \"SwitchDNS\" tile to the quick settings.\n\n<b>Apps</b>\nEither all apps except the selected ones, or only the selected ones use the DNS server.\n\n<b>Network rules</b>\nUse on mobile data and/or Wi-Fi. On Wi-Fi login pages (train, hotel) the app pauses until you are logged in.\n\n<b>Always on</b>\n\"Start on device boot\" or system VPN settings → SwitchDNS → \"Always-on VPN\". Leave \"Block connections without VPN\" off.\n\n<b>Save / load</b>\nThe icons at the top store all settings (incl. own servers and app list) in a file and restore them, e.g. on a new phone.\n\n<b>Privacy</b>\nSwitchDNS only sets the DNS server. No traffic passes through the app, nothing is logged or sent anywhere. The DNS provider you choose sees which domains are looked up.</string>
     <string name="show_system">Show system apps</string>
     <string name="help_show_system">Also lists apps and services without a launcher icon, e.g. Google Play services.</string>
     <string name="cfg_overwrite">Overwrite %1$s?</string>
@@ -63,4 +63,11 @@
     <string name="err_preset_delete">Presets cannot be deleted</string>
     <string name="header_server_state">%1$s · %2$s</string>
     <string name="hint_list">Own servers (★) are listed first; long-press one to delete it.</string>
+    <string name="help_expanded">expanded</string>
+    <string name="help_collapsed">collapsed</string>
+    <string name="foss_text">This app is free and open-source software (FOSS) under the GPL-3.0 license.\nSource code: %1$s</string>
+    <string name="help_open" translatable="false">▾  %1$s</string>
+    <string name="help_closed" translatable="false">▸  %1$s</string>
+    <string name="help_footer" translatable="false">%1$s %2$s · %3$s\n%4$s\n\n%5$s</string>
+    <string name="source_url" translatable="false">https://github.com/regepower/SwitchDNS</string>
 </resources>

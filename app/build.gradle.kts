@@ -1,4 +1,6 @@
 import java.security.KeyStore
+import java.time.LocalDate
+import java.time.ZoneId
 
 plugins {
     id("com.android.application")
@@ -13,8 +15,13 @@ android {
         applicationId = "de.regepower.switchdns"
         minSdk = 31
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        // Major.minor by hand for bigger changes; the last part is the CI build number (#57 → 1.0.57).
+        // versionCode follows it, so every CI build installs as an update. Local builds: 1.0.0.
+        val build = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 0
+        versionCode = maxOf(build, 1)
+        versionName = "1.0.$build"
+        // Build day for the help dialog (manifest meta-data, no BuildConfig/resource needed).
+        manifestPlaceholders["buildDate"] = LocalDate.now(ZoneId.of("Europe/Berlin")).toString()
     }
 
     // Release key from CI secrets. Only KEYSTORE_BASE64 + KEYSTORE_PASSWORD are required: without
@@ -42,7 +49,7 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             // Without release secrets, sign with the debug key so the APK stays installable.
             signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
@@ -55,6 +62,14 @@ android {
     kotlin {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+            // Measured in the size lab (Oct 2026): no Kotlin null-check intrinsics and string
+            // templates as plain StringBuilder code instead of invokedynamic.
+            freeCompilerArgs.addAll(
+                "-Xno-param-assertions",
+                "-Xno-call-assertions",
+                "-Xno-receiver-assertions",
+                "-Xstring-concat=inline"
+            )
         }
     }
 
@@ -74,6 +89,4 @@ android {
     }
 }
 
-dependencies {
-    implementation("androidx.recyclerview:recyclerview:1.3.2")
-}
+// No dependencies on purpose: framework APIs only (VpnService, ListView, code-built views).
