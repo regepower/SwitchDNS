@@ -2,6 +2,7 @@ package de.regepower.switchdns
 
 import android.app.Activity
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.text.Editable
@@ -13,9 +14,11 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ListView
+import android.widget.ProgressBar
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.Switch
@@ -38,6 +41,7 @@ class AppsActivity : Activity() {
 
     private lateinit var prefs: Prefs
     private lateinit var selectedHeader: TextView
+    private lateinit var loading: View
     private val selectedAdapter = AppAdapter()
     private val availableAdapter = AppAdapter()
     private var all: List<AppItem> = emptyList()
@@ -115,14 +119,46 @@ class AppsActivity : Activity() {
             fullWidth()
         )
 
+        // Lists plus a "loading" overlay on top: reading all installed apps with icons takes a moment.
+        val lists = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         selectedHeader = header(getString(R.string.header_selected, 0))
-        root.addView(selectedHeader)
-        root.addView(appList(selectedAdapter), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
-        root.addView(header(getString(R.string.header_available)))
-        root.addView(
+        lists.addView(selectedHeader)
+        lists.addView(appList(selectedAdapter), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+        lists.addView(header(getString(R.string.header_available)))
+        lists.addView(
             appList(availableAdapter),
             LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1.4f)
         )
+        loading = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            setBackgroundColor(getColor(R.color.md_surface))
+            // Swallow taps while loading.
+            isClickable = true
+            addView(
+                ProgressBar(context).apply {
+                    isIndeterminate = true
+                    indeterminateTintList = ColorStateList.valueOf(getColor(R.color.md_primary))
+                }
+            )
+            addView(
+                TextView(context).apply {
+                    text = getString(R.string.loading_apps)
+                    setPadding(0, px(12), 0, 0)
+                }
+            )
+        }
+        val box = FrameLayout(this).apply {
+            addView(
+                lists,
+                FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            )
+            addView(
+                loading,
+                FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            )
+        }
+        root.addView(box, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
         setContentView(root)
         loadApps()
     }
@@ -196,6 +232,7 @@ class AppsActivity : Activity() {
                 all = items
                 chosen.retainAll(items.map { it.pkg }.toSet())
                 refreshLists()
+                loading.visibility = View.GONE
             }
         }.start()
     }
