@@ -35,17 +35,7 @@ jobs:
       - name: Lint + Debug build
         run: |
           set -o pipefail
-          gradle --no-daemon lintDebug assembleDebug 2>&1 | tee "$RUNNER_TEMP/build.log"
-
-      # Job logs are not readable from the cloud session; errors as annotation are.
-      - name: Errors as annotation
-        if: failure()
-        run: |
-          {
-            grep -E "^e: |: Error: |error: |What went wrong|\(standard:" -A3 "$RUNNER_TEMP/build.log" || true
-            if [ -f app/build/reports/lint-results-debug.txt ]; then cat app/build/reports/lint-results-debug.txt; fi
-          } | grep -v "^--$" | head -80 | sed "s#$GITHUB_WORKSPACE/##g" > "$RUNNER_TEMP/err.txt"
-          echo "::error title=Build errors::$(sed -z 's/%/%25/g; s/\r//g; s/\n/%0A/g' "$RUNNER_TEMP/err.txt")"
+          gradle --no-daemon lintDebug assembleDebug 2>&1 | tee -a "$RUNNER_TEMP/build.log"
 
       - name: Lint warnings as annotation
         if: success()
@@ -78,17 +68,34 @@ jobs:
             echo "::warning::Secrets KEYSTORE_BASE64 / KEYSTORE_PASSWORD fehlen - signiere mit Debug-Key"
             echo "SIGNING=debug-key" >> "$GITHUB_ENV"
           fi
-          gradle --no-daemon assembleRelease
+          set -o pipefail
+          gradle --no-daemon assembleRelease 2>&1 | tee -a "$RUNNER_TEMP/build.log"
+
+      # Job logs are not readable from the cloud session; errors as annotation are.
+      - name: Errors as annotation
+        if: failure()
+        run: |
+          {
+            grep -E "^e: |: Error: |error: |What went wrong|\(standard:" -A3 "$RUNNER_TEMP/build.log" || true
+            if [ -f app/build/reports/lint-results-debug.txt ]; then cat app/build/reports/lint-results-debug.txt; fi
+          } | grep -v "^--$" | head -80 | sed "s#$GITHUB_WORKSPACE/##g" > "$RUNNER_TEMP/err.txt"
+          echo "::error title=Build errors::$(sed -z 's/%/%25/g; s/\r//g; s/\n/%0A/g' "$RUNNER_TEMP/err.txt")"
 
       - name: Size report
         run: |
           APK=$(ls app/build/outputs/apk/release/*.apk)
           echo "APK_BYTES=$(stat -c %s "$APK")" >> "$GITHUB_ENV"
+          AM="$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer"
+          "$AM" dex packages --defined-only --proguard-folder app/build/outputs/mapping/release "$APK" > "$RUNNER_TEMP/dex.txt" || true
           {
             echo "## APK sizes (bytes)"
             ls -l app/build/outputs/apk/*/*.apk | awk '{print $5, $9}'
             echo "## Release content (uncompressed compressed name)"
             unzip -lv "$APK" | awk 'NR>3 {print $1, $3, $8}'
+            echo "## Dex size by top-level package (bytes)"
+            awk -F'\t' '$1 ~ /^P/ {n=split($4,a,"."); if (n<=2) print $3, $4}' "$RUNNER_TEMP/dex.txt" | sort -rn | head -15
+            echo "## Biggest dex classes (bytes)"
+            awk -F'\t' '$1 ~ /^C/ {print $3, $4}' "$RUNNER_TEMP/dex.txt" | sort -rn | head -25
           } | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: "Release APK 1.0.${{ github.run_number }}: ${{ env.APK_BYTES }} bytes (${{ env.SIGNING }})"

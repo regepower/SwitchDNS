@@ -277,7 +277,7 @@ class DnsVpnService : VpnService() {
     }
 
     companion object {
-        private const val TAG = "MinDNS"
+        private const val TAG = "SwitchDNS"
         private const val CHANNEL = "vpn"
         private const val NOTIFICATION_ID = 1
         const val ACTION_START = "de.regepower.switchdns.START"

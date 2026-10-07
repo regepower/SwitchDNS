@@ -265,14 +265,14 @@ object AppShell {
     private fun fileName(a: Activity) = "${a.getString(R.string.app_name)}.json"
 
     /**
-     * The picker can only create files ("AgendaGo(1).json" if the name exists), never overwrite.
+     * The picker can only create files ("SwitchDNS(1).json" if the name exists), never overwrite.
      * So the last saved or loaded file is remembered and overwritten after asking; works for
      * local folders and cloud providers (Drive etc.) alike.
      */
     private fun startSave(a: Activity, sp: SharedPreferences, keep: (String) -> Boolean) {
         val last = lastFile(a)
         val name = last?.let { displayName(a, it) }
-        // A file named after an old app name (e.g. ZenDay.json loaded after a rename) is not
+        // A file named after an old app name (e.g. MinDNSChanger.json loaded after a rename) is not
         // offered for overwriting: the picker opens in the same folder with the new name.
         val legacy = name != null && legacyNames.any { name.startsWith(it, ignoreCase = true) }
         if (last == null || name == null || legacy) {
