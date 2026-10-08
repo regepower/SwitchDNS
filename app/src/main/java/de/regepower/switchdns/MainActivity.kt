@@ -3,9 +3,12 @@ package de.regepower.switchdns
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
+import android.app.StatusBarManager
+import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Typeface
+import android.graphics.drawable.Icon
 import android.net.VpnService
 import android.os.Build
 import android.os.Bundle
@@ -36,6 +39,7 @@ class MainActivity : Activity() {
     private lateinit var serverAddr: TextView
     private lateinit var appsBtn: Button
     private lateinit var appsMode: TextView
+    private lateinit var tileBtn: View
     private val listener: () -> Unit = { renderState() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,7 +54,8 @@ class MainActivity : Activity() {
         }
 
         content.addView(
-            AppShell.header(this, prefs.sp),
+            // "Tile added" is device state, not part of a config file.
+            AppShell.header(this, prefs.sp) { it == Prefs.KEY_TILE_ADDED },
             fullWidth()
         )
 
@@ -79,7 +84,14 @@ class MainActivity : Activity() {
         toggle = Button(this).apply { setOnClickListener { onToggle() } }
         serverCard.addView(toggle, fullWidth(8))
         content.addView(serverCard, fullWidth())
-        content.addView(hint(getString(R.string.hint_tile)))
+        // Android 13+: the system dialog adds the tile directly (Samsung's edit mode is hard to find).
+        tileBtn =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                button(getString(R.string.btn_add_tile), null) { requestTile() }
+            } else {
+                hint(getString(R.string.hint_tile))
+            }
+        content.addView(tileBtn, fullWidth(4))
 
         // App filter
         content.addView(header(getString(R.string.header_apps)))
@@ -129,6 +141,28 @@ class MainActivity : Activity() {
         val count = prefs.packages.size
         appsBtn.text = getString(R.string.btn_apps, count)
         appsMode.text = getString(if (prefs.whitelist) R.string.mode_whitelist else R.string.mode_blacklist)
+        tileBtn.visibility = if (prefs.tileAdded) View.GONE else View.VISIBLE
+    }
+
+    private fun requestTile() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        getSystemService(StatusBarManager::class.java).requestAddTileService(
+            ComponentName(this, DnsTileService::class.java),
+            getString(R.string.app_name),
+            Icon.createWithResource(this, R.drawable.ic_notification),
+            mainExecutor
+        ) { result ->
+            when (result) {
+                StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED,
+                StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED -> {
+                    prefs.tileAdded = true
+                    tileBtn.visibility = View.GONE
+                }
+                StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_NOT_ADDED -> Unit
+                // Error (e.g. launcher refuses): fall back to the manual way.
+                else -> Toast.makeText(this, R.string.hint_tile, Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     override fun onPause() {

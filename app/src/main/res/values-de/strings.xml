@@ -24,6 +24,7 @@
     <string name="autostart">Beim Gerätestart aktivieren</string>
     <string name="btn_always_on">Durchgehend aktives VPN einrichten</string>
     <string name="hint_always_on">In den VPN-Einstellungen SwitchDNS öffnen und „Durchgehend aktives VPN“ einschalten. „Verbindungen ohne VPN blockieren“ ausgeschaltet lassen, sonst fällt das Internet aus.</string>
+    <string name="btn_add_tile">Kachel hinzufügen</string>
     <string name="hint_tile">Kachel: Schnelleinstellungen bearbeiten und „SwitchDNS“ hinzufügen.</string>
     <string name="search_hint">Apps suchen</string>
     <string name="header_selected">Ausgewählt (%1$d)</string>

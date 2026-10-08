@@ -25,6 +25,7 @@
     <string name="autostart">Start on device boot</string>
     <string name="btn_always_on">Set up always-on VPN</string>
     <string name="hint_always_on">In the VPN settings, open SwitchDNS and enable \"Always-on VPN\". Leave \"Block connections without VPN\" off, otherwise the internet stops working.</string>
+    <string name="btn_add_tile">Add quick settings tile</string>
     <string name="hint_tile">Quick settings tile: edit the quick settings and add \"SwitchDNS\".</string>
     <string name="search_hint">Search apps</string>
     <string name="header_selected">Selected (%1$d)</string>

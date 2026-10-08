@@ -58,6 +58,11 @@ class Prefs(context: Context) {
         get() = sp.getBoolean(KEY_SHOW_SYSTEM, false)
         set(v) = sp.edit().putBoolean(KEY_SHOW_SYSTEM, v).apply()
 
+    /** Set by the tile service; hides the "add tile" button. */
+    var tileAdded: Boolean
+        get() = sp.getBoolean(KEY_TILE_ADDED, false)
+        set(v) = sp.edit().putBoolean(KEY_TILE_ADDED, v).apply()
+
     /** Own entries first, then the presets. */
     fun servers(): List<DnsServer> = custom + DnsServer.PRESETS
 
@@ -73,5 +78,6 @@ class Prefs(context: Context) {
         private const val KEY_WIFI = "on_wifi"
         private const val KEY_CAPTIVE = "pause_captive"
         private const val KEY_SHOW_SYSTEM = "show_system"
+        const val KEY_TILE_ADDED = "tile_added"
     }
 }

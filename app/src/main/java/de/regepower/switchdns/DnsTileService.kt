@@ -12,6 +12,14 @@ import android.service.quicksettings.TileService
 class DnsTileService : TileService() {
     private val listener: () -> Unit = { update() }
 
+    override fun onTileAdded() {
+        Prefs(this).tileAdded = true
+    }
+
+    override fun onTileRemoved() {
+        Prefs(this).tileAdded = false
+    }
+
     override fun onStartListening() {
         DnsVpnService.listeners.add(listener)
         update()
