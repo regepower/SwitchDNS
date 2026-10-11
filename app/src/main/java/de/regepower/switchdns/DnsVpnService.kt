@@ -18,6 +18,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.ParcelFileDescriptor
+import android.provider.Settings
 import android.service.quicksettings.TileService
 import android.system.OsConstants
 import android.util.Log
@@ -39,16 +40,19 @@ class DnsVpnService : VpnService() {
 
     /** Underlying default network of this app (the app itself is always excluded from the tunnel). */
     private var defaultCaps: NetworkCapabilities? = null
+    private var defaultNet: Network? = null
     private val wifiCaps = HashMap<Network, NetworkCapabilities>()
 
     private val defaultCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) {
             defaultCaps = caps
+            defaultNet = network
             evaluate(false)
         }
 
         override fun onLost(network: Network) {
             defaultCaps = null
+            defaultNet = null
             evaluate(false)
         }
     }
@@ -92,6 +96,8 @@ class DnsVpnService : VpnService() {
         unwatchNetworks()
         closeQuietly(tunnel)
         tunnel = null
+        captiveNetwork = null
+        cancelCaptiveAlert()
         publish(this, null, null)
         super.onDestroy()
     }
@@ -100,6 +106,8 @@ class DnsVpnService : VpnService() {
         unwatchNetworks()
         closeQuietly(tunnel)
         tunnel = null
+        captiveNetwork = null
+        cancelCaptiveAlert()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
         publish(this, null, null)
@@ -127,21 +135,25 @@ class DnsVpnService : VpnService() {
             Log.w(TAG, "unregister failed", e)
         }
         defaultCaps = null
+        defaultNet = null
         wifiCaps.clear()
     }
 
     /** String resource explaining why the tunnel must stay closed, or null if it may be open. */
     private fun pauseReason(): Int? {
         val prefs = Prefs(this)
-        if (prefs.pauseCaptive) {
-            val captive = (wifiCaps.values + listOfNotNull(defaultCaps))
-                .any { it.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL) }
-            if (captive) return R.string.pause_captive
-        }
+        if (prefs.pauseCaptive && captive() != null) return R.string.pause_captive
         val caps = defaultCaps ?: return null
         if (caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) && !prefs.onWifi) return R.string.pause_wifi
         if (caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) && !prefs.onMobile) return R.string.pause_mobile
         return null
+    }
+
+    /** Wi-Fi (or default) network that waits for a hotspot login, null if none. */
+    private fun captive(): Network? {
+        val all = wifiCaps.entries.map { it.key to it.value } +
+            listOfNotNull(defaultNet?.let { n -> defaultCaps?.let { n to it } })
+        return all.firstOrNull { it.second.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL) }?.first
     }
 
     /** Opens or closes the tunnel to match the network; [reopen] forces a fresh tunnel. */
@@ -149,6 +161,10 @@ class DnsVpnService : VpnService() {
         if (cm == null) return
         val server = Prefs(this).current()
         val reason = pauseReason()
+        val wasCaptive = captiveNetwork != null
+        captiveNetwork = if (reason == R.string.pause_captive) captive() else null
+        if (captiveNetwork != null && !wasCaptive) captiveAlert()
+        if (captiveNetwork == null && wasCaptive) cancelCaptiveAlert()
         if (reason != null) {
             if (tunnel != null || reopen || pausedReason != reason) {
                 closeQuietly(tunnel)
@@ -242,6 +258,50 @@ class DnsVpnService : VpnService() {
         PendingIntent.FLAG_IMMUTABLE
     )
 
+    private fun loginIntent(): PendingIntent = PendingIntent.getActivity(
+        this,
+        2,
+        Intent(this, LoginActivity::class.java),
+        PendingIntent.FLAG_IMMUTABLE
+    )
+
+    /** Heads-up notification (own high-importance channel): hotspot login needed. */
+    private fun captiveAlert() {
+        val nm = getSystemService(NotificationManager::class.java)
+        nm.createNotificationChannel(
+            NotificationChannel(
+                CHANNEL_CAPTIVE,
+                getString(R.string.channel_captive),
+                NotificationManager.IMPORTANCE_HIGH
+            )
+        )
+        val wifi = PendingIntent.getActivity(
+            this,
+            3,
+            Intent(Settings.ACTION_WIFI_SETTINGS),
+            PendingIntent.FLAG_IMMUTABLE
+        )
+        val n = Notification.Builder(this, CHANNEL_CAPTIVE)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(getString(R.string.captive_title))
+            .setContentText(getString(R.string.captive_text))
+            .setCategory(Notification.CATEGORY_STATUS)
+            .setContentIntent(loginIntent())
+            .setAutoCancel(true)
+            .addAction(Notification.Action.Builder(null, getString(R.string.action_login), loginIntent()).build())
+            .addAction(Notification.Action.Builder(null, getString(R.string.action_wifi), wifi).build())
+            .build()
+        try {
+            nm.notify(CAPTIVE_ID, n)
+        } catch (e: SecurityException) {
+            Log.w(TAG, "no notification permission", e)
+        }
+    }
+
+    private fun cancelCaptiveAlert() {
+        getSystemService(NotificationManager::class.java).cancel(CAPTIVE_ID)
+    }
+
     private fun notification(server: DnsServer, reason: Int?): Notification {
         val nm = getSystemService(NotificationManager::class.java)
         nm.createNotificationChannel(
@@ -261,7 +321,7 @@ class DnsVpnService : VpnService() {
         return Notification.Builder(this, CHANNEL)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
-            .setContentIntent(mainIntent())
+            .setContentIntent(if (reason == R.string.pause_captive) loginIntent() else mainIntent())
             .setOngoing(true)
             .setShowWhen(false)
             .addAction(Notification.Action.Builder(null, getString(R.string.action_stop), stop).build())
@@ -280,6 +340,8 @@ class DnsVpnService : VpnService() {
         private const val TAG = "SwitchDNS"
         private const val CHANNEL = "vpn"
         private const val NOTIFICATION_ID = 1
+        private const val CHANNEL_CAPTIVE = "captive"
+        private const val CAPTIVE_ID = 2
         const val ACTION_START = "de.regepower.switchdns.START"
         const val ACTION_STOP = "de.regepower.switchdns.STOP"
 
@@ -297,6 +359,11 @@ class DnsVpnService : VpnService() {
         /** Why the running service keeps the tunnel closed (string resource), null otherwise. */
         @Volatile
         var pausedReason: Int? = null
+            private set
+
+        /** Network waiting for a hotspot login while the service is paused for it, null otherwise. */
+        @Volatile
+        var captiveNetwork: Network? = null
             private set
 
         /** Service switched on (tunnel up or paused). */
