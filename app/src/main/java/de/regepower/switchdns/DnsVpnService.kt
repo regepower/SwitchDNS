@@ -283,6 +283,8 @@ class DnsVpnService : VpnService() {
         )
         val n = Notification.Builder(this, CHANNEL_CAPTIVE)
             .setSmallIcon(R.drawable.ic_notification)
+            // Icon background = launcher colour (otherwise the system uses the Material You accent).
+            .setColor(getColor(R.color.ic_launcher_background))
             .setContentTitle(getString(R.string.captive_title))
             .setContentText(getString(R.string.captive_text))
             .setCategory(Notification.CATEGORY_STATUS)
@@ -320,6 +322,8 @@ class DnsVpnService : VpnService() {
         }
         return Notification.Builder(this, CHANNEL)
             .setSmallIcon(R.drawable.ic_notification)
+            // Icon background = launcher colour (otherwise the system uses the Material You accent).
+            .setColor(getColor(R.color.ic_launcher_background))
             .setContentTitle(title)
             .setContentIntent(if (reason == R.string.pause_captive) loginIntent() else mainIntent())
             .setOngoing(true)
