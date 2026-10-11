@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Only for the hotspot login page (LoginActivity). -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
@@ -17,7 +19,8 @@
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="true">
 
         <activity
             android:name=".MainActivity"
@@ -36,6 +39,12 @@
             android:label="@string/header_apps"
             android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait" />
+
+        <!-- Hotspot login: hotspots redirect plain HTTP, hence cleartext above. -->
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false"
+            android:label="@string/captive_title" />
 
         <!-- DNS-only VPN; started by the app, the tile, boot or the system (always-on). -->
         <service
