@@ -7,6 +7,10 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
+      release:
+        description: "Create a GitHub release (tag = build version 1.0.<run>)"
+        type: boolean
+        default: false
       release_tag:
         description: "Existing release tag to attach the APK to (e.g. 1.0.39)"
         required: false
@@ -17,7 +21,7 @@ permissions:
 
 env:
   # Tag of the GitHub release this build belongs to (empty for normal builds); also the versionName.
-  RELEASE_TAG: ${{ inputs.release_tag || (github.ref_type == 'tag' && github.ref_name) || '' }}
+  RELEASE_TAG: ${{ inputs.release_tag || (inputs.release && format('1.0.{0}', github.run_number)) || (github.ref_type == 'tag' && github.ref_name) || '' }}
 
 jobs:
   build:
@@ -126,4 +130,6 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ env.RELEASE_TAG }}
+          # New tag (release input) goes on the commit that was built.
+          target_commitish: ${{ github.sha }}
           files: ${{ runner.temp }}/SwitchDNS-*.apk
