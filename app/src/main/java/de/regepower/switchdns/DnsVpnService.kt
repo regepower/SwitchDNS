@@ -258,12 +258,30 @@ class DnsVpnService : VpnService() {
         PendingIntent.FLAG_IMMUTABLE
     )
 
-    private fun loginIntent(): PendingIntent = PendingIntent.getActivity(
-        this,
-        2,
-        Intent(this, LoginActivity::class.java),
-        PendingIntent.FLAG_IMMUTABLE
-    )
+    /**
+     * Wi-Fi list of the system settings: tapping the hotspot there opens the system login
+     * (an own WebView login showed the portal, but the network stayed unauthorised).
+     * Direct activity first (HyperOS buries the login), generic Wi-Fi settings as fallback.
+     */
+    private fun wifiIntent(): PendingIntent {
+        val direct = Intent().setClassName(
+            "com.android.settings",
+            "com.android.settings.Settings\$WifiSettingsActivity"
+        )
+        val intent = if (packageManager.resolveActivity(direct, 0) !=
+            null
+        ) {
+            direct
+        } else {
+            Intent(Settings.ACTION_WIFI_SETTINGS)
+        }
+        return PendingIntent.getActivity(
+            this,
+            2,
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+    }
 
     /** Heads-up notification (own high-importance channel): hotspot login needed. */
     private fun captiveAlert() {
@@ -275,12 +293,6 @@ class DnsVpnService : VpnService() {
                 NotificationManager.IMPORTANCE_HIGH
             )
         )
-        val wifi = PendingIntent.getActivity(
-            this,
-            3,
-            Intent(Settings.ACTION_WIFI_SETTINGS),
-            PendingIntent.FLAG_IMMUTABLE
-        )
         val n = Notification.Builder(this, CHANNEL_CAPTIVE)
             .setSmallIcon(R.drawable.ic_notification)
             // Icon background = launcher colour (otherwise the system uses the Material You accent).
@@ -288,10 +300,8 @@ class DnsVpnService : VpnService() {
             .setContentTitle(getString(R.string.captive_title))
             .setContentText(getString(R.string.captive_text))
             .setCategory(Notification.CATEGORY_STATUS)
-            .setContentIntent(loginIntent())
+            .setContentIntent(wifiIntent())
             .setAutoCancel(true)
-            .addAction(Notification.Action.Builder(null, getString(R.string.action_login), loginIntent()).build())
-            .addAction(Notification.Action.Builder(null, getString(R.string.action_wifi), wifi).build())
             .build()
         try {
             nm.notify(CAPTIVE_ID, n)
@@ -325,7 +335,7 @@ class DnsVpnService : VpnService() {
             // Icon background = launcher colour (otherwise the system uses the Material You accent).
             .setColor(getColor(R.color.ic_launcher_background))
             .setContentTitle(title)
-            .setContentIntent(if (reason == R.string.pause_captive) loginIntent() else mainIntent())
+            .setContentIntent(if (reason == R.string.pause_captive) wifiIntent() else mainIntent())
             .setOngoing(true)
             .setShowWhen(false)
             .addAction(Notification.Action.Builder(null, getString(R.string.action_stop), stop).build())
