@@ -135,6 +135,7 @@ object AppShell {
                 LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             )
         }
+        list.addView(UpdateCheck.toggle(a))
         list.addView(
             TextView(a).apply {
                 textSize = 13f

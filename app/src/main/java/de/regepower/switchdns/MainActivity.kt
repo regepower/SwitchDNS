@@ -136,6 +136,7 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        UpdateCheck.onStart(this)
         DnsVpnService.listeners.add(listener)
         renderState()
         val count = prefs.packages.size
