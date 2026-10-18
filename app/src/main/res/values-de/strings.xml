@@ -74,4 +74,5 @@
     <string name="update_install">Herunterladen</string>
     <string name="update_later">Später</string>
     <string name="update_skip">Diese Version überspringen</string>
+    <string name="action_wifi">WLAN-Einstellungen öffnen</string>
 </resources>

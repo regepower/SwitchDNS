@@ -78,4 +78,5 @@
     <string name="update_install">Download</string>
     <string name="update_later">Later</string>
     <string name="update_skip">Skip this version</string>
+    <string name="action_wifi">Open Wi-Fi settings</string>
 </resources>
