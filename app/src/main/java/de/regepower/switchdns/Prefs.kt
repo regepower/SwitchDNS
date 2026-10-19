@@ -53,6 +53,11 @@ class Prefs(context: Context) {
         get() = sp.getBoolean(KEY_CAPTIVE, true)
         set(v) = sp.edit().putBoolean(KEY_CAPTIVE, v).apply()
 
+    /** Close the tunnel while Android Auto is connected (its connection failed with the DNS VPN). */
+    var pauseCar: Boolean
+        get() = sp.getBoolean(KEY_CAR, true)
+        set(v) = sp.edit().putBoolean(KEY_CAR, v).apply()
+
     /** App selector also lists system apps without launcher icon. */
     var showSystem: Boolean
         get() = sp.getBoolean(KEY_SHOW_SYSTEM, false)
@@ -77,6 +82,7 @@ class Prefs(context: Context) {
         private const val KEY_MOBILE = "on_mobile"
         private const val KEY_WIFI = "on_wifi"
         private const val KEY_CAPTIVE = "pause_captive"
+        private const val KEY_CAR = "pause_car"
         private const val KEY_SHOW_SYSTEM = "show_system"
         const val KEY_TILE_ADDED = "tile_added"
     }

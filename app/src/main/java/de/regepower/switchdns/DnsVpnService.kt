@@ -1,18 +1,22 @@
 package de.regepower.switchdns
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.net.Uri
 import android.net.VpnService
 import android.os.Build
 import android.os.Handler
@@ -31,7 +35,8 @@ import java.util.concurrent.CopyOnWriteArraySet
  *
  * While the service runs it watches the network: the tunnel is closed ("paused") on an
  * excluded network type or while a Wi-Fi network waits for a captive-portal login, and
- * re-opened when the network fits again. The service itself stays in the foreground.
+ * re-opened when the network fits again. Also paused while Android Auto is connected.
+ * The service itself stays in the foreground.
  */
 class DnsVpnService : VpnService() {
     private var tunnel: ParcelFileDescriptor? = null
@@ -45,27 +50,48 @@ class DnsVpnService : VpnService() {
     private var captiveShown = false
     private val wifiCaps = HashMap<Network, NetworkCapabilities>()
 
+    /** Android Auto (or another car host) is connected. */
+    private var carConnected = false
+
+    /**
+     * Network callbacks arrive in bursts (Wi-Fi/mobile hand-over, capability updates); evaluating
+     * every single one made the tunnel flap open/closed. Evaluate once the network has settled.
+     */
+    private val settle = Runnable { evaluate(false) }
+
+    private fun networkChanged() {
+        main.removeCallbacks(settle)
+        main.postDelayed(settle, SETTLE_MS)
+    }
+
+    private val carReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            carConnected = queryCar()
+            evaluate(false)
+        }
+    }
+
     private val defaultCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) {
             defaultCaps = caps
-            evaluate(false)
+            networkChanged()
         }
 
         override fun onLost(network: Network) {
             defaultCaps = null
-            evaluate(false)
+            networkChanged()
         }
     }
 
     private val wifiCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) {
             wifiCaps[network] = caps
-            evaluate(false)
+            networkChanged()
         }
 
         override fun onLost(network: Network) {
             wifiCaps.remove(network)
-            evaluate(false)
+            networkChanged()
         }
     }
 
@@ -80,7 +106,8 @@ class DnsVpnService : VpnService() {
             shutdown()
             return START_NOT_STICKY
         }
-        goForeground(Prefs(this).current(), null)
+        // Keep showing the current state (paused or active) instead of flashing "active" first.
+        goForeground(Prefs(this).current(), pausedReason)
         watchNetworks()
         // Re-open the tunnel so changed settings (server, apps) apply immediately.
         evaluate(true)
@@ -123,17 +150,50 @@ class DnsVpnService : VpnService() {
             wifiCallback,
             main
         )
+        registerCarReceiver()
+        carConnected = queryCar()
+    }
+
+    // Android Auto sends this broadcast to everyone; exported is required (it comes from another app).
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
+    private fun registerCarReceiver() {
+        val filter = IntentFilter(ACTION_CAR_CONNECTION_UPDATED)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(carReceiver, filter, Context.RECEIVER_EXPORTED)
+        } else {
+            registerReceiver(carReceiver, filter)
+        }
+    }
+
+    /**
+     * Android Auto connection state, read like androidx.car.app CarConnection does: the
+     * projection host publishes it in a content provider (no library needed).
+     */
+    private fun queryCar(): Boolean = try {
+        contentResolver.query(CAR_URI, arrayOf(CAR_STATE), null, null, null)?.use { c ->
+            val col = c.getColumnIndex(CAR_STATE)
+            col >= 0 && c.moveToNext() && c.getInt(col) != CAR_NOT_CONNECTED
+        } ?: false
+    } catch (e: SecurityException) {
+        Log.w(TAG, "car state", e)
+        false
+    } catch (e: IllegalArgumentException) {
+        Log.w(TAG, "car state", e)
+        false
     }
 
     private fun unwatchNetworks() {
         val c = cm ?: return
         cm = null
+        main.removeCallbacks(settle)
         try {
             c.unregisterNetworkCallback(defaultCallback)
             c.unregisterNetworkCallback(wifiCallback)
+            unregisterReceiver(carReceiver)
         } catch (e: IllegalArgumentException) {
             Log.w(TAG, "unregister failed", e)
         }
+        carConnected = false
         defaultCaps = null
         wifiCaps.clear()
     }
@@ -142,6 +202,7 @@ class DnsVpnService : VpnService() {
     private fun pauseReason(): Int? {
         val prefs = Prefs(this)
         if (prefs.pauseCaptive && captive()) return R.string.pause_captive
+        if (prefs.pauseCar && carConnected) return R.string.pause_car
         val caps = defaultCaps ?: return null
         if (caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) && !prefs.onWifi) return R.string.pause_wifi
         if (caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) && !prefs.onMobile) return R.string.pause_mobile
@@ -351,6 +412,13 @@ class DnsVpnService : VpnService() {
         private const val TAG = "SwitchDNS"
         private const val CHANNEL = "vpn"
         private const val NOTIFICATION_ID = 1
+        private const val SETTLE_MS = 2000L
+
+        // androidx.car.app.connection.CarConnection (copied constants, no dependency).
+        private const val ACTION_CAR_CONNECTION_UPDATED = "androidx.car.app.connection.action.CAR_CONNECTION_UPDATED"
+        private const val CAR_STATE = "CarConnectionState"
+        private const val CAR_NOT_CONNECTED = 0
+        private val CAR_URI: Uri = Uri.parse("content://androidx.car.app.connection")
         private const val CHANNEL_CAPTIVE = "captive"
         private const val CAPTIVE_ID = 2
         const val ACTION_START = "de.regepower.switchdns.START"

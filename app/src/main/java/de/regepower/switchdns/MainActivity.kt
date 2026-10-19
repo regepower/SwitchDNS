@@ -113,6 +113,7 @@ class MainActivity : Activity() {
         content.addView(optionSwitch(R.string.opt_mobile, prefs.onMobile) { prefs.onMobile = it })
         content.addView(optionSwitch(R.string.opt_wifi, prefs.onWifi) { prefs.onWifi = it })
         content.addView(optionSwitch(R.string.opt_captive, prefs.pauseCaptive) { prefs.pauseCaptive = it })
+        content.addView(optionSwitch(R.string.opt_car, prefs.pauseCar) { prefs.pauseCar = it })
         content.addView(
             button(getString(R.string.btn_always_on), null) { startActivity(Intent(Settings.ACTION_VPN_SETTINGS)) },
             fullWidth(8)
