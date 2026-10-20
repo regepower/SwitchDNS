@@ -232,9 +232,17 @@ class DnsVpnService : VpnService() {
             return
         }
         if (tunnel != null && !reopen) return
-        val old = tunnel
+        if (tunnel != null) {
+            // Changed server/apps: re-establishing on top of the running tunnel kept the old DNS
+            // (Android updates the VPN network in place, resolvers kept using the old servers).
+            // Close it fully and open a fresh one shortly after, like switching off and on.
+            closeQuietly(tunnel)
+            tunnel = null
+            main.removeCallbacks(settle)
+            main.postDelayed(settle, REOPEN_MS)
+            return
+        }
         tunnel = establish(server)
-        closeQuietly(old)
         if (tunnel == null) {
             shutdown()
             return
@@ -413,6 +421,7 @@ class DnsVpnService : VpnService() {
         private const val CHANNEL = "vpn"
         private const val NOTIFICATION_ID = 1
         private const val SETTLE_MS = 2000L
+        private const val REOPEN_MS = 1000L
 
         // androidx.car.app.connection.CarConnection (copied constants, no dependency).
         private const val ACTION_CAR_CONNECTION_UPDATED = "androidx.car.app.connection.action.CAR_CONNECTION_UPDATED"
